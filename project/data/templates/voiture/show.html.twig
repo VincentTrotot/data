@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Voiture{% endblock %}
+
+{% block body %}
+    <h1 class="mt-5">{{ voiture.marque }} {{ voiture.modele }}</h1>
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Montant total</th>
+                <th>Kilomètres total</th>
+                <th>Prix moyen d'un plein</th>
+                <th>Prix moyen du litre</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ (voiture.montantTotal / 100) | number_format(2, '.', ' ')}}€</td>
+                <td>{{ (voiture.kilometresTotal) | number_format(0, '.', ' ')}}km</td>
+                <td>{{ (voiture.prixMoyenPlein / 100) | number_format(2, '.', ' ')}}€</td>
+                <td>{{ (voiture.prixMoyenLitre / 100) | number_format(2, '.', ' ') }}€</td>
+            </tr>
+        </tbody>
+            
+    </table>
+        <a class="btn btn-default btn-sm" role="button" href="{{ path('app_voiture_index') }}">Retour à la liste</a>
+
+    <h2 class="mt-5">Liste des pleins</h2>
+    {% if voiture.pleins %}
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date {{ order('date') }}</th>
+                <th>Quantite {{ order('quantite') }}</th>
+                <th>Prix {{ order('prix') }}</th>
+                <th>Prix au litre {{ order('prix_au_litre') }}</th>
+                <th>Kilometrage {{ order('kilometrage') }}</th>
+                <th>Kilomètres parcourus {{ order('kilometre_parcourus') }}</th>
+                <th>Station {{ order('station') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for plein in voiture.pleins %}
+            <tr onclick="window.location='{{ path('app_plein_show', {'id': plein.id}) }}';" style="cursor:pointer;">
+            <th>{{ loop.index }}</th>
+                <td>{{ plein.date ? plein.date|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY' - 'H'h'mm") : '' }}</td>
+                <td>{{ (plein.quantite / 100.0) | number_format(2, '.', ' ') }}L</td>
+                <td>{{ (plein.prix / 100.0) | number_format(2, '.', ' ')}}€</td>
+                <td>{{ plein.prixAuLitre | number_format(2, '.', ' ')}}€</td>
+                <td>{{ plein.kilometrage | number_format(0, '.', ' ')}} km</td>
+                <td>
+                    {% if voiture.kilometresParcourus(plein) == 0 %}
+                        ~
+                    {% else %}
+                        {{ voiture.kilometresParcourus(plein) }} km
+                    {% endif %}
+                </td>
+                <td>{{ plein.station }}</td>
+                <td>
+                    {% if is_granted('ROLE_ADMIN') %}<a class="btn btn-default btn-sm" role="button" href="{{ path('app_plein_edit', {'id': plein.id}) }}">✍🏼</a>{% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if is_granted('ROLE_ADMIN') %}
+        <a class="btn btn-default btn-sm" role="button" href="{{ path('app_voiture_edit', {'id': voiture.id}) }}">✍🏼</a>
+        {{ include('voiture/_delete_form.html.twig') }}
+    {% endif %}
+{% endblock %}

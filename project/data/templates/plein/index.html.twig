@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pleins{% endblock %}
+
+{% block body %}
+    <h1 class="mt-5">Pleins</h1>
+    {% if is_granted('ROLE_ADMIN') %}<a class="btn btn-default btn-sm" href="{{ path('app_plein_new') }}" role="button">Ajouter un plein</a>{% endif %}
+
+    <table class="table table-sm table-hover mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Quantite</th>
+                <th>Prix</th>
+                <th>Prix au litre</th>
+                <th>Kilometrage</th>
+                <th>Voiture</th>
+                <th>Station</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for plein in pleins %}
+            <tr>
+                <th>{{ loop.index }}</th>
+                <td>{{ plein.date ? plein.date|date('d/m/Y H\\hi') : '' }}</td>
+                <td>{{ (plein.quantite / 100.0) | number_format(2, '.', ' ') }}L</td>
+                <td>{{ (plein.prix / 100.0) | number_format(2, '.', ' ')}}€</td>
+                <td>{{ plein.prixAuLitre | number_format(2, '.', ' ')}}€</td>
+                <td>{{ plein.kilometrage | number_format(0, '.', ' ')}} km</td>
+                <td onclick="window.location='{{ path('app_voiture_show', {'id': plein.voiture.id}) }}';" style="cursor:pointer;">{{ plein.voiture }}</td>
+                <td 
+                    {% if plein.station %}
+                        onclick="window.location='{{ path('app_station_show', {'id': plein.station.id}) }}';" style="cursor:pointer;"
+                    {% endif %}
+                >{{ plein.station }}</td>
+                <td>
+                    <a class="btn btn-default btn-sm" role="button" href="{{ path('app_plein_show', {'id': plein.id}) }}">🔍</a>
+                    {% if is_granted('ROLE_ADMIN') %}<a class="btn btn-default btn-sm" role="button" href="{{ path('app_plein_edit', {'id': plein.id}) }}">✍🏼</a>{% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

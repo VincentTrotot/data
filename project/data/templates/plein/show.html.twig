@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Plein{% endblock %}
+
+{% block body %}
+    <h1>Plein</h1>
+
+    <table class="table table-sm table-hover">
+        <tbody>
+            <tr>
+                <th>#</th>
+                <td>{{ plein.id }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ plein.date ? plein.date|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Quantite</th>
+                <td>{{ plein.quantite }}</td>
+            </tr>
+            <tr>
+                <th>Prix</th>
+                <td>{{ plein.prix }}</td>
+            </tr>
+            <tr>
+                <th>Kilometrage</th>
+                <td>{{ plein.kilometrage }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a class="btn btn-default btn-sm" role="button" href="{{ path('app_plein_index') }}">Retour à la liste</a>
+
+    {% if is_granted('ROLE_ADMIN') %}
+        <a class="btn btn-primary" role="button" href="{{ path('app_plein_edit', {'id': plein.id}) }}">✍🏼</a>
+        {{ include('plein/_delete_form.html.twig') }}
+    {% endif %}
+{% endblock %}

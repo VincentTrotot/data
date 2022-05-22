@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ path('app_main') }}">vt_data</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link{% if app.request.get('_route') == 'app_main' %} active{% endif %}" href="{{ path('app_main') }}">🏠 Accueil</a>
+        </li>
+        {% if is_granted('ROLE_ADMIN') %}
+        <li class="nav-item">
+          <a class="nav-link{% if app.request.get('_route') == 'app_voiture_index' %} active{% endif %}" href="{{ path('app_voiture_index') }}">🚘 Voitures</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link{% if app.request.get('_route') == 'app_plein_index' %} active{% endif %}" href="{{ path('app_plein_index')}}">⛽️ Pleins</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link{% if app.request.get('_route') == 'app_station_index' %} active{% endif %}" href="{{ path('app_station_index') }}">🚛 Stations</a>
+        </li>
+        {% endif %}
+      </ul>
+      <!--form class="d-flex" role="search">
+        <input class="form-control me-2" type="recherche" placeholder="Recherche..." aria-label="Recherche">
+        <button class="btn btn-outline-success" type="submit">Rechercher</button>
+      </form-->
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          {% if app.user %}
+            <a class="nav-link" href="{{ path('app_logout') }}">Se déconnecter</a>
+          {% else %}
+            <a class="nav-link" href="{{ path('app_login') }}">Se connecter</a>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

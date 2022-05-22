@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un plein{% endblock %}
+
+{% block body %}
+    <h1>Ajouter un plein</h1>
+
+    {{ include('plein/_form.html.twig') }}
+
+    <a class="btn btn-primary" role="button" href="{{ path('app_plein_index') }}">Retour à la liste</a>
+{% endblock %}

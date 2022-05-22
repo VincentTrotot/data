@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Station{% endblock %}
+
+{% block body %}
+    <h1 class="mt-5">{{ station.nom }} {{ station.ville }} {% if is_granted('ROLE_ADMIN') %}
+        <a class="btn btn-default btn-sm" role="button" href="{{ path('app_station_edit', {'id': station.id}) }}">✍🏼</a>
+        {{ include('station/_delete_form.html.twig') }}
+    {% endif %}</h1>
+
+    <a class="btn btn-default btn-sm" role="button" href="{{ path('app_station_index') }}">Retour à la liste</a>
+    {% if station.pleins %}
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date {{ order('date') }}</th>
+                <th>Quantite {{ order('quantite') }}</th>
+                <th>Prix {{ order('prix') }}</th>
+                <th>Prix au litre {{ order('prix_au_litre') }}</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for plein in station.pleins %}
+            <tr onclick="window.location='{{ path('app_plein_show', {'id': plein.id}) }}';" style="cursor:pointer;">
+            <th>{{ loop.index }}</th>
+                <td>{{ plein.date ? plein.date|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY' - 'H'h'mm") : '' }}</td>
+                <td>{{ (plein.quantite / 100.0) | number_format(2, '.', ' ') }}L</td>
+                <td>{{ (plein.prix / 100.0) | number_format(2, '.', ' ')}}€</td>
+                <td>{{ plein.prixAuLitre | number_format(2, '.', ' ')}}€</td>
+                <td>
+                    {% if is_granted('ROLE_ADMIN') %}<a class="btn btn-default btn-sm" role="button" href="{{ path('app_plein_edit', {'id': plein.id}) }}">✍🏼</a>{% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Voitures{% endblock %}
+
+{% block body %}
+    <h1 class="mt-5">Voitures</h1>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a class="btn btn-default btn-sm" href="{{ path('app_voiture_new') }}" role="button">Ajouter une voiture</a>
+    {% endif %}
+
+
+    <table class="table table-sm table-hover mt-3">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Kilomètres parcourus</th>
+                <th>Prix total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for voiture in voitures %}
+            <tr onclick="window.location='{{ path('app_voiture_show', {'id': voiture.id}) }}';" style="cursor:pointer;">
+                <th>{{ voiture.marque }} {{ voiture.modele }}</th>
+                <td>{{ (voiture.kilometresTotal) | number_format(0, '.', ' ')}}km</td>
+                <td>{{ (voiture.montantTotal / 100) | number_format(2, '.', ' ')}}€</td>
+                <td>
+                    {% if is_granted('ROLE_ADMIN') %}<a class="btn btn-default btn-sm" role = "button" href="{{ path('app_voiture_edit', {'id': voiture.id}) }}">✍🏼</a>{% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
