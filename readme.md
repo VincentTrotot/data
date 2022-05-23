@@ -18,10 +18,11 @@ Conteneur docker de développement inspiré par [yoandev.co](https://yoandev.co/
 ```bash
 docker-compose build
 docker-compose up -d
-docker exec -it php8-sf6 bash
+docker exec -it data bash
 cd data
 composer install
 symfony serve -d
+symfony console make:migration
 symfony console d:m:m
 ```
 
