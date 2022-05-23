@@ -24,7 +24,7 @@
         {% for plein in pleins %}
             <tr>
                 <th>{{ loop.index }}</th>
-                <td>{{ plein.date ? plein.date|date('d/m/Y H\\hi') : '' }}</td>
+                <td>{{ plein.date ? plein.date|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY' - 'H'h'mm") : '' }}</td>
                 <td>{{ (plein.quantite / 100.0) | number_format(2, '.', ' ') }}L</td>
                 <td>{{ (plein.prix / 100.0) | number_format(2, '.', ' ')}}€</td>
                 <td>{{ plein.prixAuLitre | number_format(2, '.', ' ')}}€</td>

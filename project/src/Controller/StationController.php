@@ -49,9 +49,6 @@ class StationController extends AbstractController
         return $this->render('station/show.html.twig', [
             'station' => $station,
         ]);
-        return $this->render('station/show.html.twig', [
-            'station' => $station,
-        ]);
     }
 
     #[Route('/{id}/edit', name: 'app_station_edit', methods: ['GET', 'POST'])]

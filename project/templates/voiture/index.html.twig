@@ -12,6 +12,7 @@
     <table class="table table-sm table-hover mt-3">
         <thead>
             <tr>
+                <th>#</th>
                 <th></th>
                 <th>Kilomètres parcourus</th>
                 <th>Prix total</th>
@@ -21,6 +22,7 @@
         <tbody>
         {% for voiture in voitures %}
             <tr onclick="window.location='{{ path('app_voiture_show', {'id': voiture.id}) }}';" style="cursor:pointer;">
+                <th>{{ loop.index }}</th>
                 <th>{{ voiture.marque }} {{ voiture.modele }}</th>
                 <td>{{ (voiture.kilometresTotal) | number_format(0, '.', ' ')}}km</td>
                 <td>{{ (voiture.montantTotal / 100) | number_format(2, '.', ' ')}}€</td>

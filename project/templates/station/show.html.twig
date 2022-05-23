@@ -3,14 +3,19 @@
 {% block title %}Station{% endblock %}
 
 {% block body %}
-    <h1 class="mt-5">{{ station.nom }} {{ station.ville }} {% if is_granted('ROLE_ADMIN') %}
-        <a class="btn btn-default btn-sm" role="button" href="{{ path('app_station_edit', {'id': station.id}) }}">✍🏼</a>
-        {{ include('station/_delete_form.html.twig') }}
-    {% endif %}</h1>
+    <h1 class="mt-5">
+        {{ station.nom }} {{ station.ville }}
+        {% if is_granted('ROLE_ADMIN') %}
+            <a class="btn btn-default btn-sm" role="button" href="{{ path('app_station_edit', {'id': station.id}) }}">✍🏼</a>
+        {% endif %}
+    </h1>
 
     <a class="btn btn-default btn-sm" role="button" href="{{ path('app_station_index') }}">Retour à la liste</a>
+    {% if is_granted('ROLE_ADMIN') %}
+            {{ include('station/_delete_form.html.twig') }}
+        {% endif %}
     {% if station.pleins %}
-    <table class="table table-sm table-hover">
+    <table class="table table-sm table-hover mt-5">
         <thead>
             <tr>
                 <th>#</th>

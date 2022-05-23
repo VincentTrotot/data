@@ -3,7 +3,12 @@
 {% block title %}Voiture{% endblock %}
 
 {% block body %}
-    <h1 class="mt-5">{{ voiture.marque }} {{ voiture.modele }}</h1>
+    <h1 class="mt-5">
+        {{ voiture.marque }} {{ voiture.modele }}
+        {% if is_granted('ROLE_ADMIN') %}
+            <a class="btn btn-default btn-sm" role="button" href="{{ path('app_voiture_edit', {'id': voiture.id}) }}">✍🏼</a>
+        {% endif %}
+    </h1>
     <table class="table table-sm table-striped">
         <thead>
             <tr>
@@ -24,7 +29,9 @@
             
     </table>
         <a class="btn btn-default btn-sm" role="button" href="{{ path('app_voiture_index') }}">Retour à la liste</a>
-
+        {% if is_granted('ROLE_ADMIN') %}
+            {{ include('voiture/_delete_form.html.twig') }}
+        {% endif %}
     <h2 class="mt-5">Liste des pleins</h2>
     {% if voiture.pleins %}
     <table class="table table-sm table-hover">
@@ -71,8 +78,4 @@
     </table>
     {% endif %}
 
-    {% if is_granted('ROLE_ADMIN') %}
-        <a class="btn btn-default btn-sm" role="button" href="{{ path('app_voiture_edit', {'id': voiture.id}) }}">✍🏼</a>
-        {{ include('voiture/_delete_form.html.twig') }}
-    {% endif %}
 {% endblock %}
