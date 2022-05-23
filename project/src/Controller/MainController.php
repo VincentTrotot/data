@@ -2,13 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Utilisateur;
+use App\Entity\Plein;
 use App\Repository\PleinRepository;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\VoitureRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class MainController extends AbstractController
 {
@@ -29,14 +28,19 @@ class MainController extends AbstractController
         ]);
     }
 
-    #[Route('/role/{id}', name: 'app_role')]
-    public function db(ManagerRegistry $doctrine, int $id): Response
+    #[Route('/api/plein/add/{quantite}/{prix}/{kilometrage}/{voiture}', name: 'app_api_plein_add', methods: ['GET'])]
+    public function add(PleinRepository $pleinRepository, VoitureRepository $voitureRepository, $quantite, $prix, $kilometrage, $voiture): Response
     {
-        $entityManager = $doctrine->getManager();
-        $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($id);
-        
-        $utilisateur->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
-        $entityManager->flush();
-        return $this->redirectToRoute('app_main');
+        $voiture_ = $voitureRepository->find($voiture);
+        $plein = new Plein();
+        $plein->setDate(new \DateTime());
+        $plein->setQuantite($quantite);
+        $plein->setPrix($prix);
+        $plein->setKilometrage($kilometrage);
+        $plein->setVoiture($voiture_);
+
+        $pleinRepository->add($plein, true);
+
+        return $this->redirectToRoute('app_main', [], Response::HTTP_SEE_OTHER);
     }
 }
