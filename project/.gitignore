@@ -4,6 +4,7 @@
 /public/bundles/
 /var/
 /vendor/
+.env.prod
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###

@@ -26,4 +26,4 @@ symfony console make:migration
 symfony console d:m:m
 ```
 
-Le port exposé est le port 9000
+Les ports exposés sont le port 9000 pour le serveur et le port 9080 pour phpmyadmin

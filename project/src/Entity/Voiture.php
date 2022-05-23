@@ -128,7 +128,10 @@ class Voiture
 
     public function getKilometresParcourus(Plein $plein): ?int
     {
+
         $pleins = $this->getPleins()->getValues();
+        if(count($pleins) == 0) return 0;
+        
         usort($pleins, function ($a, $b) {
             return $b->getDate() <=> $a->getDate();
         });
@@ -147,6 +150,10 @@ class Voiture
     public function getKilometresTotal(): ?int
     {
         $pleins = $this->getPleins()->getValues();
+        if(count($pleins) == 0){
+            return 0;
+        }
+
         usort($pleins, function ($a, $b) {
             return $b->getDate() <=> $a->getDate();
         });

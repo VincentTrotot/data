@@ -1,7 +1,7 @@
 db-data/
 mysql/
 
-project/migrations/*
+project/migrations/*.php
 
 # OS generated files #
 ######################

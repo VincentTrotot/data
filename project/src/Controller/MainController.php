@@ -19,7 +19,7 @@ class MainController extends AbstractController
         $labels = [];
         $data = [];
         foreach ($pleins as $plein) {
-            $labels[] = $plein->getDate()->format('d/m/Y');
+            $labels[] = $plein->getDate()->format('m/Y');
             $data[] = $plein->getPrixAuLitre();
         }
         return $this->render('main/index.html.twig', [
