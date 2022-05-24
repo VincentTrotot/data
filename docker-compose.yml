@@ -2,7 +2,7 @@ version: "3.7"
 services:
     php8-sf6:
         container_name: data
-        build: php8-sf6
+        build: docker/php8-sf6
         ports:
             - "9000:8000"
         volumes:
@@ -19,12 +19,10 @@ services:
         image: mariadb:${MARIADB_VERSION:-latest}
         container_name: data_mysql
         volumes:
-            - ./mysql:/var/lib/mysql
+            - ./docker/mysql/data:/var/lib/mysql
+            - ./docker/mysql/init:/docker-entrypoint-initdb.d
         environment:
-            - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD:-password}
-            - MYSQL_USER=${DATABASE_USER:-root}
-            - MYSQL_PASSWORD=${DATABASE_PASSWORD:-password}
-            - MYSQL_DATABASE=${COMPOSE_PROJECT_NAME:-app}
+            - MYSQL_ROOT_PASSWORD=password
         restart: always
 
     phpmyadmin:
@@ -37,7 +35,7 @@ services:
             - 9080:80
         environment:
             PMA_HOST: mysql
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
+            MYSQL_ROOT_PASSWORD: password
 
 volumes:
     mysql:
