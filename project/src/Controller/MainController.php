@@ -28,19 +28,6 @@ class MainController extends AbstractController
         ]);
     }
 
-    #[Route('/api/plein/add/{quantite}/{prix}/{kilometrage}/{voiture}', name: 'app_api_plein_add', methods: ['GET'])]
-    public function add(PleinRepository $pleinRepository, VoitureRepository $voitureRepository, $quantite, $prix, $kilometrage, $voiture): Response
-    {
-        $voiture_ = $voitureRepository->find($voiture);
-        $plein = new Plein();
-        $plein->setDate(new \DateTime());
-        $plein->setQuantite($quantite);
-        $plein->setPrix($prix);
-        $plein->setKilometrage($kilometrage);
-        $plein->setVoiture($voiture_);
+    
 
-        $pleinRepository->add($plein, true);
-
-        return $this->redirectToRoute('app_main', [], Response::HTTP_SEE_OTHER);
-    }
 }
