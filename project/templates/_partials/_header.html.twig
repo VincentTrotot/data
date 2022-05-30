@@ -10,19 +10,8 @@
           <a class="nav-link{% if app.request.get('_route') == 'app_main' %} active{% endif %}" href="{{ path('app_main') }}">🏠 Accueil</a>
         </li>
         {% if is_granted('ROLE_ADMIN') %}
-        <li class="nav-item dropdown">
-          <a href="" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">Carburant</a>
-          <ul class="dropdown-menu">
-            <li>
-              <a class="dropdown-item{% if app.request.get('_route') == 'app_voiture_index' %} active{% endif %}" href="{{ path('app_voiture_index') }}">🚘 Voitures</a>
-            </li>
-            <li>
-              <a class="dropdown-item{% if app.request.get('_route') == 'app_plein_index' %} active{% endif %}" href="{{ path('app_plein_index')}}">⛽️ Pleins</a>
-            </li>
-            <li>
-              <a class="dropdown-item{% if app.request.get('_route') == 'app_station_index' %} active{% endif %}" href="{{ path('app_station_index') }}">🚛 Stations</a>
-            </li>
-          </ul>
+        <li class="nav-item">
+          <a class="nav-link{% if app.request.get('_route') == 'app_voiture_index' %} active{% endif %}" href="{{ path('app_voiture_index') }}">🚘 Voitures</a>
         </li>
         {% endif %}
       </ul>
@@ -31,6 +20,11 @@
         <button class="btn btn-outline-success" type="submit">Rechercher</button>
       </form-->
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+      {% if is_granted('ROLE_ADMIN') %}
+        <li class="nav-item">
+          <a class="nav-link{% if app.request.get('_route') == 'admin' %} active{% endif %}" href="{{ path('admin') }}">Administration</a>
+        </li>
+        {% endif %}
         <li class="nav-item">
           {% if app.user %}
             <a class="nav-link" href="{{ path('app_logout') }}">Se déconnecter</a>

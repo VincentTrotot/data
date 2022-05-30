@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/voiture')]
+#[Route('/admin/voiture')]
 class VoitureController extends AbstractController
 {
     #[Route('/', name: 'app_voiture_index', methods: ['GET'])]
