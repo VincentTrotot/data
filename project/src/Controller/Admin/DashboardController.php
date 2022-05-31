@@ -2,14 +2,14 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Objet;
-use App\Entity\Plein;
-use App\Entity\Carton;
-use App\Entity\Station;
-use App\Entity\Voiture;
-use App\Entity\Mouvement;
-use App\Entity\Utilisateur;
-use App\Entity\CategorieObjet;
+use App\Entity\Box\Objet;
+use App\Entity\Carburant\Plein;
+use App\Entity\Box\Carton;
+use App\Entity\Carburant\Station;
+use App\Entity\Carburant\Voiture;
+use App\Entity\Box\Mouvement;
+use App\Entity\Security\Utilisateur;
+use App\Entity\Box\CategorieObjet;
 use App\Controller\Admin\PleinCrudController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -55,7 +55,7 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToRoute('Accueil', 'fa fa-home', 'app_main');
+        yield MenuItem::linkToRoute('Accueil', 'fa fa-home', 'home');
         yield MenuItem::linkToDashboard('Administration', 'fa fa-shield-alt');
         
         yield MenuItem::section('Carburant');

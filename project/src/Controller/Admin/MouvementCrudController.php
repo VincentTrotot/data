@@ -3,7 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Config\Sens;
-use App\Entity\Mouvement;
+use App\Entity\Box\Mouvement;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;

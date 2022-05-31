@@ -2,7 +2,7 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Voiture;
+use App\Entity\Carburant\Voiture;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class VoitureCrudController extends AbstractCrudController

@@ -2,7 +2,7 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\CategorieObjet;
+use App\Entity\Box\CategorieObjet;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class CategorieObjetCrudController extends AbstractCrudController
