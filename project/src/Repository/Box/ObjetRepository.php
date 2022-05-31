@@ -39,6 +39,18 @@ class ObjetRepository extends ServiceEntityRepository
         }
     }
 
+    public function findAll()
+    {
+        return $this->createQueryBuilder('o')
+            ->select('o, car, cat')
+            ->leftJoin('o.carton', 'car')
+            ->leftJoin('o.categorie', 'cat')
+            ->orderBy('car.numero', 'ASC')
+            ->addOrderBy('cat.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return Objet[] Returns an array of Objet objects
 //     */

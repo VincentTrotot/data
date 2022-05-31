@@ -1,20 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello BoxController!{% endblock %}
+{% block title %}Box{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+<table class="table table-sm">
+    <thead>
+        <th>Objet</th>
+        <th>Categorie</th>
+        <th>Carton</th>
+    </thead>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ '/var/www/html/data/src/Controller/BoxController.php'|file_link(0) }}">src/Controller/BoxController.php</a></code></li>
-        <li>Your template at <code><a href="{{ '/var/www/html/data/templates/box/index.html.twig'|file_link(0) }}">templates/box/index.html.twig</a></code></li>
-    </ul>
-</div>
+    <tbody>
+    {% for objet in objets %}
+        <tr>
+            <td>{{ objet.nom }}</td>
+            <td>{{ objet.categorie.nom }}</td>
+            <td>{{ objet.carton.numero }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+
+</table>
+
 {% endblock %}

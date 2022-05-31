@@ -2,8 +2,9 @@
 
 namespace App\Entity\Box;
 
-use App\Repository\Box\CartonRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\Box\CartonRepository;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: CartonRepository::class)]
 class Carton
@@ -18,6 +19,9 @@ class Carton
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $emplacement;
+
+    #[ORM\OneToMany(mappedBy: 'carton', targetEntity: Objet::class)]
+    private $objets;
 
     public function getId(): ?int
     {
@@ -44,6 +48,36 @@ class Carton
     public function setEmplacement(?string $emplacement): self
     {
         $this->emplacement = $emplacement;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Objet>
+     */
+    public function getObjets(): Collection
+    {
+        return $this->objets;
+    }
+
+    public function addObjet(Objet $objet): self
+    {
+        if (!$this->objets->contains($objet)) {
+            $this->objets[] = $objet;
+            $objet->setCarton($this);
+        }
+
+        return $this;
+    }
+
+    public function removeObjet(Objet $objet): self
+    {
+        if ($this->objets->removeElement($objet)) {
+            // set the owning side to null (unless already changed)
+            if ($objet->getCarton() === $this) {
+                $objet->setCarton(null);
+            }
+        }
 
         return $this;
     }
