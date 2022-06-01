@@ -2,13 +2,9 @@
 
 namespace App\Controller\Admin;
 
-use App\Config\Sens;
 use App\Entity\Box\Mouvement;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
@@ -29,17 +25,14 @@ class MouvementCrudController extends AbstractCrudController
     
     public function configureFields(string $pageName): iterable
     {
-        return [
-            IdField::new('id')->hideOnDetail()->hideOnForm(),
-            DateTimeField::new('date'),
-            ChoiceField::new('sens')
-                ->setChoices([
-                    'Dépôt' => 'in',
-                    'Retrait' => 'out',
-                ]),
-            AssociationField::new('objet'),
-            AssociationField::new('utilisateur'),
-        ];
+        yield AssociationField::new('objet');
+        yield ChoiceField::new('sens')
+            ->setChoices([
+                'Dépôt' => 'in',
+                'Retrait' => 'out',
+            ]);
+        yield DateTimeField::new('date');
+        yield AssociationField::new('utilisateur');
     }
     
 }

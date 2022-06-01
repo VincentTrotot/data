@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Carburant\Voiture;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 class VoitureCrudController extends AbstractCrudController
@@ -12,14 +13,11 @@ class VoitureCrudController extends AbstractCrudController
         return Voiture::class;
     }
 
-    /*
     public function configureFields(string $pageName): iterable
     {
-        return [
-            IdField::new('id'),
-            TextField::new('title'),
-            TextEditorField::new('description'),
-        ];
+        yield TextField::new('marque');
+        yield TextField::new('modele');
+        yield TextField::new('immatriculation');
     }
-    */
+
 }

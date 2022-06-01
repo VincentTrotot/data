@@ -4,12 +4,11 @@ namespace App\Controller\Carburant;
 
 use App\Entity\Carburant\Voiture;
 use App\Form\Carburant\VoitureType;
-use App\Repository\Carburant\PleinRepository;
-use App\Repository\Carburant\VoitureRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\Carburant\VoitureRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/admin/voiture')]
 class VoitureController extends AbstractController

@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Box\Carton;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
@@ -17,11 +16,8 @@ class CartonCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        return [
-            IdField::new('id')->hideOnDetail()->hideOnForm()->hideOnIndex(),
-            TextField::new('numero'),
-            TextField::new('emplacement'),
-        ];
+        yield TextField::new('numero');
+        yield TextField::new('emplacement');
     }
     
 }

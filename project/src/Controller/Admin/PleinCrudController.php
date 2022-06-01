@@ -4,7 +4,6 @@ namespace App\Controller\Admin;
 
 use App\Entity\Carburant\Plein;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
@@ -36,31 +35,25 @@ class PleinCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        return [
-            IdField::new('id')->hideOnForm()->hideOnIndex(),
-            DateTimeField::new('date')->setFormat('EEEE d MMMM yyyy - HH:mm'),
-            IntegerField::new('quantite')
-                ->formatValue(function ($value) {
-                    return number_format($value / 100, 2, '.', ' ') . 'L';
-                }
-            ),
-            IntegerField::new('prix')
+        yield DateTimeField::new('date')->setFormat('EEEE d MMMM yyyy - HH:mm');
+        yield IntegerField::new('quantite')
+            ->formatValue(function ($value) {
+                return number_format($value / 100, 2, '.', ' ') . 'L';
+            });
+        yield IntegerField::new('prix')
             ->formatValue(function ($value) {
                 return number_format($value / 100, 2, '.', ' ') . '€';
-            }
-        ),
-            IntegerField::new('kilometrage')
-                ->formatValue(function($value) {
-                    return number_format($value, 0, '.', ' ') . ' km';
-                }),
-            NumberField::new('prixAuLitre')
+            });
+        yield IntegerField::new('kilometrage')
+            ->formatValue(function($value) {
+                return number_format($value, 0, '.', ' ') . ' km';
+            });
+        yield NumberField::new('prixAuLitre')
                 ->hideOnForm()
                 ->formatValue(function ($value) {
                     return $value . '€';
-                }
-            ),
-            AssociationField::new('voiture'),
-            AssociationField::new('station'),
-        ];
+            });
+        yield AssociationField::new('voiture');
+        yield AssociationField::new('station');
     }
 }

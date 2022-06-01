@@ -2,9 +2,7 @@
 
 namespace App\Controller\App;
 
-use App\Entity\Carburant\Plein;
 use App\Repository\Carburant\PleinRepository;
-use App\Repository\Carburant\VoitureRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
