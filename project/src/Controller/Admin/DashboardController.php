@@ -10,6 +10,12 @@ use App\Entity\Carburant\Voiture;
 use App\Entity\Box\Mouvement;
 use App\Entity\Security\Utilisateur;
 use App\Entity\Box\CategorieObjet;
+use App\Repository\Box\CartonRepository;
+use App\Repository\Box\CategorieObjetRepository;
+use App\Repository\Box\ObjetRepository;
+use App\Repository\Carburant\PleinRepository;
+use App\Repository\Carburant\StationRepository;
+use App\Repository\Carburant\VoitureRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -18,10 +24,44 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 
 class DashboardController extends AbstractDashboardController
 {
+
+    private $objetRepository;
+    private $cartonRepository;
+    private $categorieObjetRepository;
+    private $pleinRepository;
+    private $stationRepository;
+    private $voitureRepository;
+
+    public function __construct(
+        ObjetRepository $objetRepository, 
+        CartonRepository $cartonRepository, 
+        CategorieObjetRepository $categorieObjetRepository, 
+        PleinRepository $pleinRepository, 
+        StationRepository $stationRepository, 
+        VoitureRepository $voitureRepository
+    ){
+        $this->objetRepository = $objetRepository;
+        $this->cartonRepository = $cartonRepository;
+        $this->categorieObjetRepository = $categorieObjetRepository;
+        $this->pleinRepository = $pleinRepository;
+        $this->stationRepository = $stationRepository;
+        $this->voitureRepository = $voitureRepository;
+    }
+
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        return $this->render('admin/index.html.twig');
+
+        return $this->render('admin/index.html.twig',
+            [
+                'total_objets' => $this->objetRepository->count([]),
+                'total_cartons' => $this->cartonRepository->count([]),
+                'total_categories' => $this->categorieObjetRepository->count([]),
+                'total_pleins' => $this->pleinRepository->count([]),
+                'total_stations' => $this->stationRepository->count([]),
+                'total_voitures' => $this->voitureRepository->count([]),
+            ]
+        );
     }
 
     public function configureDashboard(): Dashboard

@@ -1,5 +1,10 @@
 {% extends '@EasyAdmin/layout.html.twig' %}
  
 {% block main %}
-Bienvenue sur la page d'administration du journal.
+<h1>Bienvenue sur la page d'administration du journal.</h1>
+<h3 class="mt-5">Gestion du carburant</h3>
+<p>Il y a {{ total_voitures }} {% if total_voitures <= 1 %}voiture{% else %}voitures{% endif %}, {{ total_stations }} {% if total_stations <= 1 %}station{% else %}stations{% endif %} et {{ total_pleins }} {% if total_pleins <= 1 %}plein{% else %}pleins{% endif %} {% if total_voitures + total_stations + total_pleins <= 1 %}enregistré{% else %}enregistrés{% endif %} sur le site.
+
+<h3 class="mt-5">Gestion du box</h3>
+<p>Il y a {{ total_objets }} {% if total_objets <= 1 %}objet enregistré{% else %}objets enregistrés{% endif %} dans {{ total_categories }} {% if total_categories <= 1 %}catégorie{% else %}catégories{% endif %} et {{ total_cartons }} {% if total_cartons <= 1 %}carton{% else %}cartons{% endif %} sur le site.
 {% endblock %}
