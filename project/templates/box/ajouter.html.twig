@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un objet{% endblock %}
+
+{% block body %}
+    <h1>Ajouter un objet</h1>
+
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {{ include('box/_form.html.twig') }}
+
+    <a href="{{ path('box_index') }}">Retour à la liste</a>
+{% endblock %}

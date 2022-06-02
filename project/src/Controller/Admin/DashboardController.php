@@ -41,6 +41,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Stations', 'fa fa-gas-pump', Station::class);
         
         yield MenuItem::section('Box');
+        yield MenuItem::linkToUrl('Ajouter un objet', 'fa fa-plus', '/admin/box/objet/ajouter');
         yield MenuItem::linkToCrud('Objets', 'fa fa-cubes', Objet::class);
         yield MenuItem::linkToCrud('Catégories d\'objet', 'fa fa-info-circle', CategorieObjet::class);
         yield MenuItem::linkToCrud('Cartons', 'fa fa-box-open', Carton::class);
