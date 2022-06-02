@@ -22,9 +22,15 @@ class BoxController extends AbstractController
     #[Route('/', name: 'box_index')]
     public function index(ObjetRepository $objetRepository): Response
     {
-
+        $objets = $objetRepository->findAll();
+        $cartons = [];
+        foreach ($objets as $objet) {
+            $numero = $objet->getCarton() ? 'Carton '.$objet->getCarton()->getNumero() : 'En dehors des cartons';
+            $cartons[$numero]['numero'] = $numero;
+            $cartons[$numero]['objets'][] = $objet;
+        }
         return $this->render('box/index.html.twig', [
-            'objets' => $objetRepository->findAll(),
+            'cartons' => $cartons,
         ]);
     }
 

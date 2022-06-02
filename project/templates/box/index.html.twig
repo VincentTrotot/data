@@ -4,33 +4,38 @@
 
 {% block body %}
 
-<a class="btn btn-success mt3" href="{{ path('box_objet_ajouter') }}">Ajouter un objet</a>
+<a class="btn btn-success mt-4" href="{{ path('box_objet_ajouter') }}">Ajouter un objet</a>
 
 
-<table class="table table-sm">
-    <thead>
-        <th>Objet</th>
-        <th>Categorie</th>
-        <th>Carton</th>
-        <th></th>
-    </thead>
+{% for carton in cartons %}
+<hr class="mt-5 mb-5">
+    <h3 class="mt-4">{{ carton.numero }}</h3>
 
-    <tbody>
-    {% for objet in objets %}
-        <tr class="{% if objet.in %} table-primary{% endif %}">
-            <td>{{ objet.nom }}</td>
-            <td>{{ objet.categorie ? objet.categorie.nom }}</td>
-            <td>{{ objet.carton ? objet.carton.numero }}</td>
-            <td>
-                {% if objet.in %}
-                    <a href="{{ path('box_objet_retirer', {'id': objet.id}) }}">Retirer</a>
-                {% else %}
-                    <a href="{{ path('box_objet_replacer', {'id': objet.id}) }}">Replacer</a></td>
-                {% endif %}
-        </tr>
-    {% endfor %}
-    </tbody>
+    <table class="table table-sm">
+        <thead>
+            <th>Objet</th>
+            <th>Categorie</th>
+            <th></th>
+        </thead>
 
-</table>
+        <tbody>
+        {% for objet in carton.objets %}
+            <tr class="{% if objet.in %} table-primary{% endif %}">
+                <td>{{ objet.nom }}</td>
+                <td>{{ objet.categorie ? objet.categorie.nom }}</td>
+                <td>
+                    {% if objet.in %}
+                        <a href="{{ path('box_objet_retirer', {'id': objet.id}) }}">Retirer</a>
+                    {% else %}
+                        <a href="{{ path('box_objet_replacer', {'id': objet.id}) }}">Replacer</a></td>
+                    {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+{% endfor %}
+
 
 {% endblock %}
