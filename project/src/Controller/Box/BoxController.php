@@ -110,10 +110,6 @@ class BoxController extends AbstractController
             $this->addFlash('error', 'Vous devez choisir une catégorie ou entrer un nom de catégorie');
             $error = true;
         }
-        if($carton == null && $carton_add['numero'] == null) {
-                $this->addFlash('error', 'Vous devez choisir un carton ou entrer un numéro de carton');
-                $error = true;
-        }
         if($error) {
             return $this->render('box/ajouter.html.twig', [
                 'form' => $form->createView(),
@@ -134,16 +130,22 @@ class BoxController extends AbstractController
         $objet->setCategorie($categorie);
         
         //Gestion du carton
-        if($carton == null){
-            $carton = $cartonRepository->findOneBy(['numero' => $carton_add['numero']]);
-            if($carton == null) {
-                $carton = new Carton();
-                $carton->setNumero($carton_add['numero']);
-                $carton->setEmplacement($carton_add['emplacement']);
+        if($carton == null && $carton_add['numero'] == ""){
+            $objet->setCarton(null);
+        } else {
+            if($carton == null){
+                if($carton_add['numero'] != "") {
+                    $carton = $cartonRepository->findOneBy(['numero' => $carton_add['numero']]);
+                    if($carton == null) {
+                        $carton = new Carton();
+                        $carton->setNumero($carton_add['numero']);
+                        $carton->setEmplacement($carton_add['emplacement']);
+                    }
+                    $cartonRepository->add($carton, true);
+                }
             }
-            $cartonRepository->add($carton, true);
+            $objet->setCarton($carton);
         }
-        $objet->setCarton($carton);
 
         // Enregistrement de l'objet
         $objetRepository->add($objet, true);

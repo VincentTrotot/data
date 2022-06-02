@@ -42,27 +42,41 @@ class ObjetRepository extends ServiceEntityRepository
 
     public function findAll()
     {
-        $data = $this->createQueryBuilder('o')
+        $data= $this->createQueryBuilder('o')
             ->select('o, car, cat, m')
             ->leftJoin('o.carton', 'car')
             ->leftJoin('o.categorie', 'cat')
             ->leftJoin('o.mouvements', 'm')
-            ->orderBy('car.numero', 'ASC')
+            ->orderBy('o.carton', 'ASC')
+            ->addOrderBy('car.numero', 'ASC')
             ->addOrderBy('cat.nom', 'ASC')
             ->addOrderBy('o.nom', 'ASC')
             ->getQuery()
             ->getResult();
 
-        usort($data, function($a, $b) {
-            if($a->isIn() && !$b->isIn()) {
-                return 1;
-            } elseif(!$a->isIn() && $b->isIn()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        });
+            
+            usort($data, function($a, $b) {
+                if($a->isIn() && !$b->isIn()) {
+                    return 1;
+                } elseif(!$a->isIn() && $b->isIn()) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
 
+            usort($data, function($a, $b) {
+                if($a->getCarton() == null && $b->getCarton() != null) {
+                    return -1;
+                } elseif($a->getCarton() != null && $b->getCarton() == null) {
+                    return 1;
+                } elseif($a->getCarton() == null && $b->getCarton() == null) {
+                    return 0;
+                } else {
+                    return ($a->getCarton()->getNumero() < $b->getCarton()->getNumero()) ? -1 : 1;
+                }
+            });
+            
         return $data;
     }
 
