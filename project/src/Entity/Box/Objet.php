@@ -22,6 +22,7 @@ class Objet
     private $categorie;
 
     #[ORM\ManyToOne(targetEntity: Carton::class, inversedBy: 'objets')]
+    #[ORM\JoinColumn(nullable: true, onDelete:'SET NULL')]
     private $carton;
 
     #[ORM\OneToMany(mappedBy: 'objet', targetEntity: Mouvement::class, orphanRemoval: true)]

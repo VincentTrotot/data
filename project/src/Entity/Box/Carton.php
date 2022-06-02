@@ -21,6 +21,7 @@ class Carton
     private $emplacement;
 
     #[ORM\OneToMany(mappedBy: 'carton', targetEntity: Objet::class)]
+    #[ORM\JoinColumn(onDelete:'SET NULL')]
     private $objets;
 
     public function getId(): ?int
