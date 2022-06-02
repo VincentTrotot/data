@@ -2,6 +2,7 @@
 
 namespace App\Repository\Box;
 
+use App\Entity\Box\Objet;
 use App\Entity\Box\Mouvement;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -37,5 +38,17 @@ class MouvementRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function findLastForObjet(Objet $objet): ?Mouvement
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.objet = :objet')
+            ->setParameter('objet', $objet)
+            ->orderBy('m.date', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
     }
 }

@@ -9,14 +9,21 @@
         <th>Objet</th>
         <th>Categorie</th>
         <th>Carton</th>
+        <th></th>
     </thead>
 
     <tbody>
     {% for objet in objets %}
-        <tr>
+        <tr class="{% if objet.in %} table-primary{% endif %}">
             <td>{{ objet.nom }}</td>
             <td>{{ objet.categorie.nom }}</td>
             <td>{{ objet.carton.numero }}</td>
+            <td>
+                {% if objet.in %}
+                    <a href="{{ path('box_objet_retirer', {'id': objet.id}) }}">Retirer</a>
+                {% else %}
+                    <a href="{{ path('box_objet_ajouter', {'id': objet.id}) }}">Replacer</a></td>
+                {% endif %}
         </tr>
     {% endfor %}
     </tbody>

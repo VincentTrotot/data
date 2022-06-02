@@ -3,8 +3,9 @@
 namespace App\Repository\Box;
 
 use App\Entity\Box\Objet;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @extends ServiceEntityRepository<Objet>
@@ -41,14 +42,28 @@ class ObjetRepository extends ServiceEntityRepository
 
     public function findAll()
     {
-        return $this->createQueryBuilder('o')
-            ->select('o, car, cat')
+        $data = $this->createQueryBuilder('o')
+            ->select('o, car, cat, m')
             ->leftJoin('o.carton', 'car')
             ->leftJoin('o.categorie', 'cat')
+            ->leftJoin('o.mouvements', 'm')
             ->orderBy('car.numero', 'ASC')
             ->addOrderBy('cat.nom', 'ASC')
+            ->addOrderBy('o.nom', 'ASC')
             ->getQuery()
             ->getResult();
+
+        usort($data, function($a, $b) {
+            if($a->isIn() && !$b->isIn()) {
+                return 1;
+            } elseif(!$a->isIn() && $b->isIn()) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+
+        return $data;
     }
 
 }

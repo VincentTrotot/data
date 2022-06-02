@@ -14,7 +14,7 @@
           <a class="nav-link{% if app.request.get('_route') == 'app_voiture_index' %} active{% endif %}" href="{{ path('app_voiture_index') }}">🚘 Voitures</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link{% if app.request.get('_route') == 'app_box' %} active{% endif %}" href="{{ path('app_box') }}">📦 Box</a>
+          <a class="nav-link{% if app.request.get('_route') == 'box_index' %} active{% endif %}" href="{{ path('box_index') }}">📦 Box</a>
         </li>
         {% endif %}
       </ul>

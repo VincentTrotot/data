@@ -108,4 +108,10 @@ class Objet
         return $this->nom;
     }
 
+    public function isIn() : bool
+    {
+        $lastMouvement = $this->getMouvements()->last();
+        return $lastMouvement->getSens() == 'in';
+    }
+
 }
