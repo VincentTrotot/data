@@ -50,11 +50,21 @@ class VoitureRepository extends ServiceEntityRepository
         $pleins = new \Doctrine\Common\Collections\ArrayCollection($pleins);
         $voiture = $pleins[0]->getVoiture();
 
-            if($voiture !== null) {
-                $voiture->setPleins($pleins);
-            }
-            return $voiture;
-
+        if ($voiture !== null) {
+            $voiture->setPleins($pleins);
+        }
+        return $voiture;
     }
 
+    public function findAll()
+    {
+        return $this->createQueryBuilder('v')
+            ->select('v, p, s')
+            ->leftJoin('v.pleins', 'p')
+            ->leftJoin('p.station', 's')
+            ->orderBy('v.marque', 'ASC')
+            ->addOrderBy('v.modele', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
