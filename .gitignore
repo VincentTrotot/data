@@ -1,6 +1,5 @@
-docker/mysql/data*
 
-project/migrations/*.php
+/migrations/*.php
 
 # OS generated files #
 ######################
@@ -11,3 +10,23 @@ project/migrations/*.php
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+
+###> symfony/framework-bundle ###
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+.env.prod
+###< symfony/framework-bundle ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
