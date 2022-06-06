@@ -2,40 +2,8 @@
 
 {% block title %}Accueil{% endblock %}
 
-{% block javascripts %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    window.onload = () => {
-        const data = {
-            labels: {{ labels | raw }},
-            datasets: [{
-                label: "Prix du litre",
-                data: {{ data | raw }},
-                backgroundColor: 'rgb(0, 0, 75)',
-                borderColor: 'rgb(0, 0, 75)',
-                pointRadius: 5,
-             }]
-        };
-
-  const config = {
-    type: 'line',
-    data: data,
-    options: {}
-  };
-
-  const myChart = new Chart(
-    document.getElementById('myChart').getContext("2d"),
-    config
-  );
-
-    }
-    </script>
-{% endblock %}
-
 {% block body %}
 
-<div>
-  <canvas id="myChart"></canvas>
-</div>
+{{ render_chart(chart) }}
 
 {% endblock %}
