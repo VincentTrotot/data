@@ -15,22 +15,24 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 #[Route('/api')]
 class ApiController extends AbstractController
 {
-    #[Route('/plein/add/{quantite}/{prix}/{kilometrage}/{voiture}/{station}', name: 'api_plein_add', methods: ['GET'])]
-    public function add(PleinRepository $pleinRepository, VoitureRepository $voitureRepository, StationRepository $stationRepository, $quantite, $prix, $kilometrage, $voiture, $station): Response
+    #[Route('/plein/add/{quantite}/{prix}/{kilometrage}/{voiture}/{station}/{api_key}', name: 'api_plein_add', methods: ['GET'])]
+    public function add(PleinRepository $pleinRepository, VoitureRepository $voitureRepository, StationRepository $stationRepository, $quantite, $prix, $kilometrage, $voiture, $station, $api_key): Response
     {
-        $voiture_ = $voitureRepository->find($voiture);
-        $station_ = $stationRepository->find($station);
-        $plein = new Plein();
-        $plein->setDate(new \DateTime());
-        $plein->setQuantite($quantite);
-        $plein->setPrix($prix);
-        $plein->setKilometrage($kilometrage);
-        if($voiture_ != null)
-            $plein->setVoiture($voiture_);
-        if($station_ != null)
-            $plein->setStation($station_);
+        if ($api_key == $this->getParameter('API_KEY')) {
+            $voiture_ = $voitureRepository->find($voiture);
+            $station_ = $stationRepository->find($station);
+            $plein = new Plein();
+            $plein->setDate(new \DateTime());
+            $plein->setQuantite($quantite);
+            $plein->setPrix($prix);
+            $plein->setKilometrage($kilometrage);
+            if ($voiture_ != null)
+                $plein->setVoiture($voiture_);
+            if ($station_ != null)
+                $plein->setStation($station_);
 
-        $pleinRepository->add($plein, true);
+            $pleinRepository->add($plein, true);
+        }
 
         return $this->redirectToRoute('home', [], Response::HTTP_SEE_OTHER);
     }
@@ -41,10 +43,9 @@ class ApiController extends AbstractController
         $data = [];
         $stations = $stationRepository->findAll();
         foreach ($stations as $station) {
-            $data[$station->getNom(). ' ' . $station->getVille()] = $station->getId();
+            $data[$station->getNom() . ' ' . $station->getVille()] = $station->getId();
         }
         return $this->json($data);
-
     }
 
     #[Route('/voitures', name: 'api_get_voitures', methods: ['GET'])]
@@ -56,7 +57,6 @@ class ApiController extends AbstractController
             $data[$voiture->getMarque() . ' ' . $voiture->getModele()] = $voiture->getId();
         }
         return $this->json($data);
-
     }
 
     #[Route('/voiture/add/{marque}/{modele}/{immatriculation}', name: 'api_voiture_add', methods: ['GET'])]
@@ -66,12 +66,10 @@ class ApiController extends AbstractController
         $voiture->setMarque($marque);
         $voiture->setModele($modele);
         $voiture->setImmatriculation($immatriculation);
-        
+
         $voitureRepository->add($voiture, true);
 
         return $this->json($voiture->getId());
-
-       
     }
 
     #[Route('/station/add/{nom}/{ville}', name: 'api_station_add', methods: ['GET'])]
@@ -85,6 +83,5 @@ class ApiController extends AbstractController
         $stationRepository->add($station, true);
 
         return $this->json($station->getId());
-
     }
 }

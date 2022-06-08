@@ -19,6 +19,7 @@ Thumbs.db
 /var/
 /vendor/
 .env.prod
+.env.local
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###
