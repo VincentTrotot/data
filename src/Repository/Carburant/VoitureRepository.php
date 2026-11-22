@@ -56,7 +56,7 @@ class VoitureRepository extends ServiceEntityRepository
         return $voiture;
     }
 
-    public function findAll()
+    public function findAll(): array
     {
         return $this->createQueryBuilder('v')
             ->select('v, p, s')

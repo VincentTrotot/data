@@ -40,7 +40,7 @@ class ObjetRepository extends ServiceEntityRepository
         }
     }
 
-    public function findAll()
+    public function findAll(): array
     {
         $data= $this->createQueryBuilder('o')
             ->select('o, car, cat, m')

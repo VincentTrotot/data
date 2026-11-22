@@ -6,7 +6,7 @@ use App\Entity\Carburant\Voiture;
 use App\Form\Carburant\VoitureType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\Carburant\VoitureRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -34,7 +34,7 @@ class VoitureController extends AbstractController
             return $this->redirectToRoute('app_voiture_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('carburant/voiture/new.html.twig', [
+        return $this->render('carburant/voiture/new.html.twig', [
             'voiture' => $voiture,
             'form' => $form,
         ]);
@@ -63,7 +63,7 @@ class VoitureController extends AbstractController
             return $this->redirectToRoute('app_voiture_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->renderForm('carburant/voiture/edit.html.twig', [
+        return $this->render('carburant/voiture/edit.html.twig', [
             'voiture' => $voiture,
             'form' => $form,
         ]);

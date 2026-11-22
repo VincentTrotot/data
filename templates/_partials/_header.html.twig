@@ -7,14 +7,14 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link{% if app.request.get('_route') == 'home' %} active{% endif %}" href="{{ path('home') }}">🏠 Accueil</a>
+          <a class="nav-link{% if app.request.attributes.get('_route') == 'home' %} active{% endif %}" href="{{ path('home') }}">🏠 Accueil</a>
         </li>
         {% if is_granted('ROLE_ADMIN') %}
         <li class="nav-item">
-          <a class="nav-link{% if app.request.get('_route') == 'app_voiture_index' %} active{% endif %}" href="{{ path('app_voiture_index') }}">🚘 Voitures</a>
+          <a class="nav-link{% if app.request.attributes.get('_route') == 'app_voiture_index' %} active{% endif %}" href="{{ path('app_voiture_index') }}">🚘 Voitures</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link{% if app.request.get('_route') == 'box_index' %} active{% endif %}" href="{{ path('box_index') }}">📦 Box</a>
+          <a class="nav-link{% if app.request.attributes.get('_route') == 'box_index' %} active{% endif %}" href="{{ path('box_index') }}">📦 Box</a>
         </li>
         {% endif %}
       </ul>
@@ -25,7 +25,7 @@
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
       {% if is_granted('ROLE_ADMIN') %}
         <li class="nav-item">
-          <a class="nav-link{% if app.request.get('_route') == 'admin' %} active{% endif %}" href="{{ path('admin') }}">Administration</a>
+          <a class="nav-link{% if app.request.attributes.get('_route') == 'admin' %} active{% endif %}" href="{{ path('admin') }}">Administration</a>
         </li>
         {% endif %}
         <li class="nav-item">

@@ -26,7 +26,7 @@ class PleinCrudController extends AbstractCrudController
             ->setDefaultSort(['date' => 'DESC']);
     }
 
-    public function createEntity(string $entityFqcn)
+    public function createEntity(string $entityFqcn): object
     {
         $entity = new $entityFqcn();
         $entity->setDate(new \DateTime());

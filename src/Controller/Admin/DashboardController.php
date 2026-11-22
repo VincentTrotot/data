@@ -17,7 +17,7 @@ use App\Repository\Carburant\PleinRepository;
 use App\Repository\Carburant\StationRepository;
 use App\Repository\Carburant\VoitureRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -76,18 +76,18 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToUrl('Administration', 'fa fa-shield-alt', '/admin');
         
         yield MenuItem::section('Carburant');
-        yield MenuItem::linkToCrud('Pleins', 'fa fa-tachometer-alt', Plein::class);
-        yield MenuItem::linkToCrud('Voitures', 'fa fa-car', Voiture::class);
-        yield MenuItem::linkToCrud('Stations', 'fa fa-gas-pump', Station::class);
+        yield MenuItem::linkTo(PleinCrudController::class, 'Pleins', 'fa fa-tachometer-alt');
+        yield MenuItem::linkTo(VoitureCrudController::class, 'Voitures', 'fa fa-car');
+        yield MenuItem::linkTo(StationCrudController::class, 'Stations', 'fa fa-gas-pump');
         
         yield MenuItem::section('Box');
         yield MenuItem::linkToUrl('Ajouter un objet', 'fa fa-plus', '/admin/box/objet/ajouter');
-        yield MenuItem::linkToCrud('Objets', 'fa fa-cubes', Objet::class);
-        yield MenuItem::linkToCrud('Catégories d\'objet', 'fa fa-info-circle', CategorieObjet::class);
-        yield MenuItem::linkToCrud('Cartons', 'fa fa-box-open', Carton::class);
-        yield MenuItem::linkToCrud('Mouvements', 'fa fa-exchange-alt', Mouvement::class);
+        yield MenuItem::linkTo(ObjetCrudController::class, 'Objets', 'fa fa-cubes');
+        yield MenuItem::linkTo(CategorieObjetCrudController::class, 'Catégories d\'objet', 'fa fa-info-circle');
+        yield MenuItem::linkTo(CartonCrudController::class, 'Cartons', 'fa fa-box-open');
+        yield MenuItem::linkTo(MouvementCrudController::class, 'Mouvements', 'fa fa-exchange-alt');
         
         yield MenuItem::section('Utilisateurs');
-        yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-user', Utilisateur::class);
+        yield MenuItem::linkTo(UtilisateurCrudController::class, 'Utilisateurs', 'fa fa-user');
     }
 }

@@ -15,7 +15,7 @@ class MouvementCrudController extends AbstractCrudController
         return Mouvement::class;
     }
 
-    public function createEntity(string $entityFqcn)
+    public function createEntity(string $entityFqcn): object
     {
         $entity = new $entityFqcn();
         $entity->setDate(new \DateTime());
