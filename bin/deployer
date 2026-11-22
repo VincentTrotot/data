@@ -1,0 +1,324 @@
+#!/usr/bin/env bash
+# Déploiement sur le VPS OVH (SSH + tar, PHP-FPM natif, un utilisateur Linux par site).
+#
+# Tout est construit sur cette machine (export du commit courant, vendor sans les paquets de dev, assets compilés),
+# puis envoyé en archive dans un nouveau dossier releases/<date>-<sha>. Le lien current ne bascule qu'une fois la
+# base sauvegardée et migrée : retour arrière immédiat avec --revenir.
+#
+#   bin/deployer --essai     construit, envoie dans un dossier d'essai et dit si des migrations sont en attente
+#   bin/deployer             déploie
+#   bin/deployer --force     redéploie même si current est déjà sur ce commit
+#   bin/deployer --revenir   rebascule current sur la version précédente
+#
+# Configuration : deploy.env.local (modèle : deploy.env.dist). Voir docs/deploiement.md.
+# Sur le serveur : le site a été créé par `sudo nouveau-site <nom> current/public <domaines…>` (utilisateur s-<nom>,
+# pool PHP-FPM, bloc Caddy). Le code appartient à debian (groupe s-<nom>, lecture seule pour PHP) ; var/ et shared/
+# appartiennent à s-<nom>. Les commandes console tournent sous s-<nom>.
+set -euo pipefail
+
+racine=$(cd "$(dirname "$0")/.." && pwd)
+essai=false
+force=false
+revenir=false
+for option in "$@"; do
+    case $option in
+        --essai) essai=true ;;
+        --force) force=true ;;
+        --revenir) revenir=true ;;
+        *) echo "Option inconnue : $option (--essai, --force, --revenir)" >&2; exit 1 ;;
+    esac
+done
+
+config=${DEPLOY_CONFIG:-$racine/deploy.env.local}
+if [[ ! -f $config ]]; then
+    echo "Il manque $config : copiez deploy.env.dist et remplissez-le." >&2
+    exit 1
+fi
+# shellcheck source=/dev/null
+source "$config"
+: "${SSH_HOTE:?SSH_HOTE manquant dans deploy.env.local}"
+: "${SITE:?SITE manquant dans deploy.env.local (nom donné à nouveau-site)}"
+: "${URL_SITE:?URL_SITE manquant dans deploy.env.local}"
+DOSSIER=${DOSSIER:-/srv/sites/$SITE}
+DOSSIER=${DOSSIER%/}
+URL_SITE=${URL_SITE%/}
+CHEMIN_VERIF=${CHEMIN_VERIF:-/}
+PHP_FPM=${PHP_FPM:-php8.4-fpm}
+utilisateur=s-$SITE
+
+# ce qui est envoyé : jamais var/, tests/ ni .env.local (le .env.local de prod est dans shared/)
+dossiers=(aide assets bin config migrations public ressources src templates translations vendor)
+fichiers=(.env composer.json composer.lock importmap.php)
+
+travail=$racine/var/deploiement
+construction=$travail/construction
+
+distant() {
+    ssh -o BatchMode=yes -o ConnectTimeout=10 "$SSH_HOTE" "$@"
+}
+
+# console Symfony sur le serveur, sous l'utilisateur du site
+console() {
+    local dossier=$1
+    shift
+    distant "cd '$dossier' && sudo -u '$utilisateur' php bin/console $*"
+}
+
+etape() {
+    printf '\n\033[1m%s\033[0m\n' "$1"
+}
+
+recharger_php() {
+    # vide l'OPcache (les chemins passent par le lien current)
+    distant "sudo systemctl reload '$PHP_FPM'"
+}
+
+# --- retour arrière --------------------------------------------------------------------------------------
+
+if $revenir; then
+    etape "Retour à la version précédente"
+    actuelle=$(distant "basename \"\$(readlink '$DOSSIER/current')\"")
+    precedente=$(distant "ls -1 '$DOSSIER/releases'" | grep -E '^[0-9]{8}-' | sort | grep -B1 -x "$actuelle" | head -n 1 || true)
+    if [[ -z $precedente || $precedente == "$actuelle" ]]; then
+        echo "Pas de version précédente à rétablir (actuelle : $actuelle)." >&2
+        exit 1
+    fi
+    # la version quittée pendant un déploiement a pu garder son fichier de maintenance
+    distant "sudo -u '$utilisateur' rm -f '$DOSSIER/releases/$precedente/var/maintenance' \
+        && cd '$DOSSIER' && ln -sfn 'releases/$precedente' current.tmp && mv -T current.tmp current"
+    recharger_php
+    echo "current : $actuelle -> $precedente"
+    echo "La base n'a pas bougé : si des migrations ont été jouées par $actuelle, restaurez la sauvegarde"
+    echo "de déploiement (docs/deploiement.md, « Restauration »)."
+    exit 0
+fi
+
+# --- garde-fous ------------------------------------------------------------------------------------------
+
+if ! $essai && [[ -n $(git -C "$racine" status --porcelain) ]]; then
+    echo "Des modifications ne sont pas commitées : seul le dernier commit est déployé. Commitez ou rangez-les." >&2
+    exit 1
+fi
+# déployer un code plus ancien que la prod casse le site : les migrations déjà jouées ne correspondent plus
+if git -C "$racine" remote | grep -q .; then
+    git -C "$racine" fetch --quiet
+    if git -C "$racine" rev-parse --abbrev-ref '@{u}' > /dev/null 2>&1; then
+        retard=$(git -C "$racine" rev-list --count 'HEAD..@{u}')
+        if ((retard > 0)); then
+            echo "La branche est en retard de $retard commit(s) sur le remote : git pull avant de déployer." >&2
+            exit 1
+        fi
+    fi
+fi
+
+etape "Vérification du serveur"
+if ! distant "test -f '$DOSSIER/shared/.env.local'"; then
+    echo "Serveur injoignable ou pas de $DOSSIER/shared/.env.local : voir docs/deploiement.md." >&2
+    exit 1
+fi
+
+sha=$(git -C "$racine" rev-parse --short HEAD)
+actuelle=$(distant "readlink '$DOSSIER/current' || true")
+if ! $essai && ! $force && [[ $actuelle == *"-$sha" ]]; then
+    echo "Le serveur est déjà sur le commit $sha, rien à envoyer (--force pour redéployer)."
+    exit 0
+fi
+
+id=$(date +%Y%m%d-%H%M)-$sha
+if $essai; then
+    dossier_version=essai-$id
+else
+    dossier_version=$id
+fi
+version=$DOSSIER/releases/$dossier_version
+
+# --- état et nettoyage en cas d'erreur -------------------------------------------------------------------
+
+phase=construction
+maintenance_posee=false
+sauvegarde_faite=false
+
+en_cas_d_erreur() {
+    local code=$?
+    trap - ERR
+    echo >&2
+    case $phase in
+        envoi | sauvegarde)
+            # current n'a pas bougé : on rouvre et on jette la version à moitié envoyée
+            if $maintenance_posee; then
+                distant "sudo -u '$utilisateur' rm -f '$DOSSIER/current/var/maintenance'" || true
+            fi
+            distant "sudo rm -rf '$version'" || true
+            echo "Échec ($phase) : rien n'a changé sur le serveur, le site est rouvert." >&2
+            ;;
+        migration)
+            echo "Les migrations ou le cache:warmup ont échoué : current n'a pas bougé, le site reste en maintenance." >&2
+            echo "Pour le rouvrir : ssh $SSH_HOTE sudo rm $DOSSIER/current/var/maintenance" >&2
+            if $sauvegarde_faite; then
+                echo "Si la base a été modifiée, restaurez la copie de déploiement (docs/deploiement.md)." >&2
+            fi
+            ;;
+        bascule | verification)
+            echo "Échec ($phase). Retour arrière : bin/deployer --revenir" >&2
+            ;;
+        *)
+            echo "Échec ($phase), rien n'a été touché sur le serveur." >&2
+            ;;
+    esac
+    exit "$code"
+}
+trap en_cas_d_erreur ERR
+# la construction est lourde mais rien n'en reste après le script
+trap 'rm -rf "${construction:?}"' EXIT
+
+# --- construction ----------------------------------------------------------------------------------------
+
+etape "Construction de $(git -C "$racine" log -1 --format='%h %s')"
+mkdir -p "$travail"
+rm -rf "${construction:?}"
+mkdir -p "$construction"
+git -C "$racine" archive HEAD | tar -x -C "$construction"
+(
+    cd "$construction"
+    export APP_ENV=prod APP_DEBUG=0 APP_SECRET=construction
+    composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --no-progress --quiet
+    if [[ -f webpack.config.js ]]; then
+        # Encore : public/build/ n'est pas versionné (composer d'abord : des paquets npm pointent vers vendor/)
+        npm ci --no-audit --no-fund --silent
+        npm run build --silent > "$travail/build.log" 2>&1 || { cat "$travail/build.log" >&2; exit 1; }
+        rm -rf node_modules
+    fi
+    if [[ -f importmap.php ]]; then
+        # assets/vendor n'est pas versionné
+        php bin/console importmap:install --no-interaction > "$travail/build.log" 2>&1 || { cat "$travail/build.log" >&2; exit 1; }
+        php bin/console asset-map:compile >> "$travail/build.log" 2>&1 || { cat "$travail/build.log" >&2; exit 1; }
+    fi
+    rm -rf var
+)
+rm -f "$travail/build.log"
+presents=()
+for element in "${dossiers[@]}" "${fichiers[@]}"; do
+    if [[ -e $construction/$element ]]; then
+        presents+=("$element")
+    fi
+done
+
+# --- envoi -----------------------------------------------------------------------------------------------
+
+phase=envoi
+etape "Envoi dans releases/$dossier_version"
+# COPYFILE_DISABLE : pas de fichiers ._* de macOS dans l'archive ; --no-same-owner : fichiers à debian, groupe du site
+COPYFILE_DISABLE=1 tar -czf - -C "$construction" "${presents[@]}" \
+    | distant "mkdir -p '$version' && tar -xzf - --no-same-owner -C '$version' && chmod -R g+rX,o-rwx '$version'"
+distant "sudo install -d -o '$utilisateur' -g '$utilisateur' -m 2770 \
+        '$DOSSIER/shared/log' '$DOSSIER/shared/sauvegardes' '$DOSSIER/shared/alertes' \
+        '$version/var' '$version/var/cache' \
+    && sudo -u '$utilisateur' ln -sfn ../../../shared/log '$version/var/log' \
+    && sudo -u '$utilisateur' ln -sfn ../../../shared/sauvegardes '$version/var/sauvegardes' \
+    && sudo -u '$utilisateur' ln -sfn ../../../shared/alertes '$version/var/alertes' \
+    && sudo -u '$utilisateur' sh -c 'test -e \"$DOSSIER/shared/data_prod.db\" && ln -sfn ../../../shared/data_prod.db \"$version/var/data_prod.db\" || true' \
+    && ln -sfn ../../shared/.env.local '$version/.env.local'"
+# dossiers d'uploads conservés d'une version à l'autre (PARTAGES="public/medias var/share" : dans shared/, liés)
+for partage in ${PARTAGES:-}; do
+    profondeur=$(($(tr -cd '/' <<< "$partage" | wc -c) + 2))
+    remonte=$(printf '../%.0s' $(seq 1 "$profondeur"))
+    distant "sudo install -d -o '$utilisateur' -g '$utilisateur' -m 2770 '$DOSSIER/shared/$partage' \
+        && sudo rm -rf '$version/$partage' && mkdir -p \"\$(dirname '$version/$partage')\" \
+        && ln -sfn '${remonte}shared/$partage' '$version/$partage'"
+done
+echo "$(du -sh "$construction" | cut -f1) construits, envoyés."
+# code plus ancien que la prod (branche locale en retard, mauvaise branche) : la base a des migrations inconnues
+if distant "test -f '$DOSSIER/shared/data_prod.db'" \
+    && console "$version" doctrine:migrations:list --no-interaction 2>/dev/null | grep -q 'not available'; then
+    echo "La base de prod a des migrations absentes de ce code : il est plus ancien que la prod (git pull ?)." >&2
+    false
+fi
+
+# --- essai -----------------------------------------------------------------------------------------------
+
+if $essai; then
+    etape "Migrations"
+    if console "$version" doctrine:migrations:up-to-date --no-interaction; then
+        echo "Base à jour, pas de migration."
+    else
+        echo "Des migrations seront jouées (voir ci-dessus)."
+    fi
+    distant "sudo rm -rf '$version'"
+    echo
+    echo "Essai terminé, rien n'a changé sur le serveur."
+    exit 0
+fi
+
+# --- maintenance, sauvegarde, migrations -----------------------------------------------------------------
+
+phase=sauvegarde
+if [[ -n $actuelle ]]; then
+    etape "Maintenance"
+    distant "sudo -u '$utilisateur' touch '$DOSSIER/current/var/maintenance'"
+    maintenance_posee=true
+    echo "Site en maintenance."
+fi
+
+if distant "test -f '$DOSSIER/shared/data_prod.db'"; then
+    # copie cohérente par sqlite3 (indépendante de l'appli), gardée 10 déploiements
+    etape "Sauvegarde de la base"
+    distant "sudo -u '$utilisateur' sh -c 'mkdir -p \"$DOSSIER/shared/sauvegardes/deploiements\" \
+        && sqlite3 \"$DOSSIER/shared/data_prod.db\" \".backup $DOSSIER/shared/sauvegardes/deploiements/avant-$id.db\" \
+        && gzip \"$DOSSIER/shared/sauvegardes/deploiements/avant-$id.db\" \
+        && ls -1t \"$DOSSIER/shared/sauvegardes/deploiements\"/avant-*.db.gz | tail -n +11 | xargs -r rm -f'"
+    sauvegarde_faite=true
+    echo "Copie : shared/sauvegardes/deploiements/avant-$id.db.gz"
+else
+    echo "Pas encore de base sur le serveur : les migrations la créeront (dans shared/)."
+    # la base vit dans shared/ : on crée le lien avant que Doctrine ne crée le fichier
+    distant "sudo -u '$utilisateur' ln -sfn ../../../shared/data_prod.db '$version/var/data_prod.db'"
+fi
+
+phase=migration
+etape "Migrations"
+console "$version" doctrine:migrations:migrate --no-interaction --allow-no-migration
+if console "$version" list app 2>/dev/null | grep -q 'app:cles-etrangeres:verifier'; then
+    console "$version" app:cles-etrangeres:verifier --no-interaction
+fi
+console "$version" cache:warmup
+
+# --- bascule ---------------------------------------------------------------------------------------------
+
+phase=bascule
+etape "Bascule"
+distant "cd '$DOSSIER' && ln -sfn 'releases/$dossier_version' current.tmp && mv -T current.tmp current"
+recharger_php
+maintenance_posee=false
+echo "current -> releases/$dossier_version, $PHP_FPM rechargé."
+
+# --- vérification ----------------------------------------------------------------------------------------
+
+phase=verification
+etape "Vérification de $URL_SITE$CHEMIN_VERIF"
+options_curl=()
+if [[ -n ${IP_VERIF:-} ]]; then
+    # avant la bascule DNS : on vise directement le VPS (certificat interne de Caddy, d'où -k)
+    hote=${URL_SITE#https://}
+    options_curl=(--resolve "$hote:443:$IP_VERIF" -k)
+fi
+reponse=000
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    reponse=$(curl -sS ${options_curl[@]+"${options_curl[@]}"} -o /dev/null -w '%{http_code}' "$URL_SITE$CHEMIN_VERIF" || true)
+    [[ $reponse == 200 ]] && break
+    sleep 2
+done
+if [[ $reponse != 200 ]]; then
+    echo "$URL_SITE$CHEMIN_VERIF répond $reponse au lieu de 200." >&2
+    false
+fi
+echo "Le site répond 200."
+
+# --- ménage ----------------------------------------------------------------------------------------------
+
+phase=menage
+trap - ERR
+etape "Ménage"
+distant "cd '$DOSSIER/releases' && ls -1 | grep -E '^[0-9]{8}-' | sort | head -n -5 | xargs -r sudo rm -rf" || true
+echo "5 dernières versions gardées."
+echo
+echo "Déployé : $dossier_version"

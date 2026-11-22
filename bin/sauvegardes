@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Rapatrie sur cette machine les sauvegardes quotidiennes de la base faites sur le serveur (app:sauvegarder,
+# lancée chaque nuit par la crontab du serveur) : seules les copies qui manquent ici sont téléchargées, rien
+# n'est supprimé, ni ici ni sur le serveur. Prévient si la dernière copie du serveur a plus de deux jours (le
+# cron ne tourne plus ?).
+#
+#   bin/sauvegardes   (make sauvegarde)
+#
+# Configuration : deploy.env.local, comme bin/deployer. Voir docs/deploiement.md.
+set -euo pipefail
+
+racine=$(cd "$(dirname "$0")/.." && pwd)
+config=${DEPLOY_CONFIG:-$racine/deploy.env.local}
+if [[ ! -f $config ]]; then
+    echo "Il manque $config : copiez deploy.env.dist et remplissez-le." >&2
+    exit 1
+fi
+# shellcheck source=/dev/null
+source "$config"
+DOSSIER=${DOSSIER:-/srv/sites/${SITE:?SITE manquant dans deploy.env.local}}
+: "${SSH_HOTE:?SSH_HOTE manquant dans deploy.env.local}"
+
+local_dir=$racine/var/deploiement/sauvegardes/serveur
+mkdir -p "$local_dir"
+chmod 700 "$local_dir"
+
+avant=$(find "$local_dir" -name 'data-*.db.gz' | wc -l | tr -d ' ')
+# seulement les copies terminées (data-AAAA-MM-JJ.db.gz), pas celle en cours d'écriture ; sudo : fichiers à s-<SITE>
+if ! rsync -rt --ignore-existing --rsync-path='sudo rsync' \
+    --include='data-*.db.gz' --exclude='*' "$SSH_HOTE:$DOSSIER/shared/sauvegardes/" "$local_dir/"; then
+    echo "Impossible de lire shared/sauvegardes sur le serveur : le cron a-t-il déjà tourné ?" >&2
+    echo "(docs/deploiement.md)" >&2
+    exit 1
+fi
+apres=$(find "$local_dir" -name 'data-*.db.gz' | wc -l | tr -d ' ')
+
+derniere=$(find "$local_dir" -name 'data-*.db.gz' | sort | tail -1)
+if [[ -z $derniere ]]; then
+    echo "Aucune sauvegarde sur le serveur : le cron est-il en place ? (docs/deploiement.md)" >&2
+    exit 1
+fi
+echo "$((apres - avant)) nouvelle(s) sauvegarde(s), $apres en tout dans $local_dir"
+date_derniere=$(basename "$derniere" .db.gz | sed 's/^data-//')
+echo "Dernière : $date_derniere"
+if [[ $date_derniere < $(date -v-2d +%Y-%m-%d) ]]; then
+    echo "Attention : la dernière sauvegarde du serveur a plus de deux jours, vérifiez la crontab de s-data." >&2
+fi
+
+# Test des deux dernières copies : la base s'ouvre-t-elle, et son contenu est-il plausible ?
+if ! command -v sqlite3 > /dev/null; then
+    echo "sqlite3 n'est pas installé : la sauvegarde n'a pas été testée." >&2
+    exit 0
+fi
+verification=$racine/var/deploiement/sauvegardes/verification
+mkdir -p "$verification"
+chmod 700 "$verification"
+trap 'rm -rf "$verification"/*' EXIT
+
+# comptages d'une copie dans $comptes (« pleins objets mouvements ») ; arrête le script si elle est
+# abîmée (pas de sous-shell : l'exit doit sortir du script)
+controler() {
+    local copie=$1 fichier="$verification/$(basename "$1" .gz)" sortie
+    gunzip -c "$copie" > "$fichier"
+    sortie=$(sqlite3 "$fichier" 'PRAGMA integrity_check;' 2>&1) || true
+    if [[ $sortie != "ok" ]]; then
+        echo "La dernière sauvegarde est abîmée : $sortie" >&2
+        exit 1
+    fi
+    comptes=$(sqlite3 "$fichier" "SELECT (SELECT COUNT(*) FROM plein), (SELECT COUNT(*) FROM objet), (SELECT COUNT(*) FROM mouvement);" | tr '|' ' ')
+    rm -f "$fichier"
+}
+
+controler "$derniere"
+read -r pleins objets mouvements <<< "$comptes"
+echo "Contenu : $pleins pleins, $objets objets, $mouvements mouvements"
+
+avant_derniere=$(find "$local_dir" -name 'data-*.db.gz' | sort | tail -2 | head -1)
+if [[ $avant_derniere != "$derniere" ]]; then
+    controler "$avant_derniere"
+    read -r pleins_avant objets_avant mouvements_avant <<< "$comptes"
+    date_avant=$(basename "$avant_derniere" .db.gz | sed 's/^data-//')
+    # plus de 10 % en moins
+    if ((pleins * 10 < pleins_avant * 9 || objets * 10 < objets_avant * 9 || mouvements * 10 < mouvements_avant * 9)); then
+        echo "Attention : $pleins pleins / $objets objets / $mouvements mouvements contre $pleins_avant / $objets_avant / $mouvements_avant dans la copie du $date_avant : vérifie que rien n'a été effacé." >&2
+    fi
+fi

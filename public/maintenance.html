@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- sans JavaScript, la page se recharge d'elle-même -->
+    <noscript><meta http-equiv="refresh" content="30"></noscript>
+    <title>vt_data en maintenance</title>
+    <style>
+        body { font-family: system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 0 16px; color: #222; background: #f6f6f6; }
+        main { max-width: 32rem; text-align: center; }
+        h1 { color: #2f4f6f; }
+        .attente { display: inline-block; width: 2.5rem; height: 2.5rem; border: 4px solid #d9dde4; border-top-color: #2f4f6f; border-radius: 50%; animation: tourne 1s linear infinite; }
+        @keyframes tourne { to { transform: rotate(360deg); } }
+        .doux { color: #666; font-size: .9rem; }
+        button { margin-top: 1rem; padding: .8rem 1.5rem; border: 0; background: #2f4f6f; color: #fff; font: 600 1rem system-ui, sans-serif; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <main>
+        <span class="attente" aria-hidden="true"></span>
+        <h1>vt_data en maintenance</h1>
+        <p>Le site revient dans quelques instants.</p>
+        <p class="doux" id="etat" role="status">La page se rechargera toute seule dès que ce sera fini.</p>
+        <button type="button" id="reessayer">Réessayer maintenant</button>
+    </main>
+    <script>
+        // toutes les 10 secondes (et au retour dans l'appli), on demande la page : dès qu'elle n'est plus en maintenance,
+        // on la recharge ; utile surtout dans l'appli installée, qui n'a pas de bouton pour actualiser
+        (function () {
+            var DELAI = 10;
+            var reste = DELAI;
+            var etat = document.getElementById('etat');
+
+            function verifier() {
+                reste = DELAI;
+                fetch(window.location.href, { method: 'HEAD', cache: 'no-store', credentials: 'same-origin' })
+                    .then(function (reponse) {
+                        if (reponse.status !== 503) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function () {
+                        // pas de réseau : on réessaie au prochain tour
+                    });
+            }
+
+            setInterval(function () {
+                reste -= 1;
+                if (reste <= 0) {
+                    verifier();
+                }
+                etat.textContent = 'Nouvel essai dans ' + Math.max(reste, 0) + ' s.';
+            }, 1000);
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible') {
+                    verifier();
+                }
+            });
+            document.getElementById('reessayer').addEventListener('click', function () {
+                window.location.reload();
+            });
+        })();
+    </script>
+</body>
+</html>

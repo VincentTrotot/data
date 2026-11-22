@@ -1,6 +1,10 @@
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 
+parameters:
+    # erreurs de l'appli gardées pour l'admin, une ligne JSON par erreur
+    app.fichier_erreurs: '%kernel.logs_dir%/erreurs-%kernel.environment%.jsonl'
+
 services:
     # default configuration for services in *this* file
     _defaults:

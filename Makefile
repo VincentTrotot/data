@@ -17,4 +17,18 @@ migrate:
 test:
 	$(PHPUNIT)
 
-.PHONY: install serve migration migrate test
+### Déploiement sur le VPS (docs/deploiement.md)
+deploy-essai:
+	bin/deployer --essai
+
+deploy:
+	bin/deployer
+
+revenir:
+	bin/deployer --revenir
+
+# Rapatrie les sauvegardes quotidiennes du serveur (docs/deploiement.md)
+sauvegarde:
+	bin/sauvegardes
+
+.PHONY: install serve migration migrate test deploy-essai deploy revenir sauvegarde
