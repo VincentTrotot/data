@@ -37,3 +37,4 @@ Thumbs.db
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+.phpunit.cache/
